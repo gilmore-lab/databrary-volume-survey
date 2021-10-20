@@ -6,7 +6,8 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center")
 ```
 
 # Purpose
@@ -49,6 +50,8 @@ ADD SCREEN SHOT HERE
 
 `descriptive_title`: Enter `yes` if the title describes the dataset, `no` if it does not, and `NA` if the volume cannot be found--you get a '404 -- Not Found' error.
 
-SCREEN SHOT OF 404 ERROR HERE
+```{r}
+knitr::include_graphics("img/databrary-volume-404-error.png")
+```
 
 `full_description`: Does the volume have a paragraph that describes the dataset fully?
