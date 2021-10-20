@@ -1,5 +1,6 @@
 # databrary-volume-survey
-Survey of Databrary volume contents by Gilmore Lab members
+
+Survey of Databrary volume contents by Gilmore Lab members.
 
 ## Data source
 
