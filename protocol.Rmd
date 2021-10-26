@@ -42,7 +42,7 @@ ADD SCREEN SHOT HERE
 - Visit in sequential order, e.g., `volume_id` 11-20.
 - Visit the URL on Databrary: `https://databrary.org/volume/<volume_id>` substituting the value for the volume you are visiting with `<volume_id>`, for example: <https://databrary.org/volume/11>.
 
-### Data fields
+### Stage 1: Data fields
 
 `coder`: The initials of the person coding the data, e.g., 'rog'.
 
@@ -54,4 +54,14 @@ ADD SCREEN SHOT HERE
 knitr::include_graphics("img/databrary-volume-404-error.png")
 ```
 
-`full_description`: Does the volume have a paragraph that describes the dataset fully?
+`full_description`: Does the volume have a paragraph that describes the dataset fully? yes, no (some descriptive explanation) or NA (no descriptive explanation of data)
+
+### Stage 2: Data fields
+
+For all of the volumes that have a '404 -- Not Found' error, ARS will add the Stage 2 data fields by logging into Databrary as Admin.
+
+`investigator_1_lastname`: Last name of the first investigator listed on the volume.  
+
+`investigator_1_party_id`: party ID of the first investigator listed on the volume. Click on the investigator name then you will see the party ID number. e.g. Rick Gilmore <https://nyu.databrary.org/party/6>. 
+
+`comments`:
