@@ -75,3 +75,9 @@ vols_df <- readr::read_csv('csv/databrary-volume-survey.csv')
 str(vols_df)
 ```
 
+# Visualize
+
+```{r}
+xtabs(~ coder + sharing_level, data = vols_df)
+```
+

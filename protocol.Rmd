@@ -46,6 +46,12 @@ ADD SCREEN SHOT HERE
 
 `coder`: The initials of the person coding the data, e.g., 'rog'.
 
+ars: Andrea Seisler</br>
+kmj: Kavya Jhaveri</br>
+kzm: Kayla Moniger</br>
+mhb: Maggie Burke</br>
+rog: Rick Gilmore</br>
+
 `volume_id`: An integer indicating the volume identifier. Do not use a formula for this.
 
 `descriptive_title`: Enter `yes` if the title describes the dataset, `no` if it does not, and `NA` if the volume cannot be found--you get a '404 -- Not Found' error.
@@ -54,7 +60,9 @@ ADD SCREEN SHOT HERE
 knitr::include_graphics("img/databrary-volume-404-error.png")
 ```
 
-`full_description`: Does the volume have a paragraph that describes the dataset fully? yes, no (some descriptive explanation) or NA (no descriptive explanation of data)
+`full_description`: Does the volume have a paragraph that describes the dataset fully? `yes`, `no` (some descriptive explanation) or `NA` (no descriptive explanation of data exists) are acceptable values. If there _is_ a thumbnail image or video, but it is blank, or broken, or does not play, indicate that in the comments section.
+
+ADD MORE FIELDS FROM DATA SHEET
 
 ### Stage 2: Data fields
 
