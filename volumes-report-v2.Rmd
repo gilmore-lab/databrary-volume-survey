@@ -1,0 +1,107 @@
+---
+title: "Databrary Volume Survey"
+subtitle: "Version 2.0"
+author: "Rick Gilmore"
+date: "`r Sys.time()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Purpose
+
+This document provides preliminary results from a survey of all Databrary volumes conducted in October and November 2021 by members of the Gilmore lab team.
+
+# Report strategy
+
+1. Import data from the shared Google sheet.
+2. Clean the data.
+3. Summarize and visualize the data.
+
+# Import
+
+Data are stored in a shared Google sheet located at the following URL:
+
+<https://docs.google.com/spreadsheets/d/1WXY82Xi4AGbNkClkqnUxCnxcrdnwLKU6Ki-9L9e3TbU/edit#gid=0>
+
+ROG has restricted access to this sheet since we finished the initial coding.
+
+We'll use the `googlesheets4` package in the `googledrive` package.
+
+Check to see if package is installed, and if not, install it and the related `tidyverse` package we'll need later.
+
+```{r}
+if(!require(googledrive)) {
+  install.packages('googledrive')
+}
+
+if(!require(tidyverse)) {
+  install.packages('tidyverse')
+}
+
+# Bring tidyverse into local workspace for pipe '%>%' operator
+library(tidyverse)
+```
+
+Since we  know the Google-unique identifier, we can access it directly (and more quickly).
+
+```{r}
+vols_sheet_id <- '1WXY82Xi4AGbNkClkqnUxCnxcrdnwLKU6Ki-9L9e3TbU'
+vols_data_drib_2 <- googledrive::drive_get(id = vols_sheet_id)
+```
+
+Now we can download the file.
+
+```{r}
+googledrive::drive_download(file = 'databrary-volume-survey', path = 'csv/databrary-volume-survey', type = 'csv', overwrite = TRUE)
+```
+
+Next, we can import it into R.
+
+```{r}
+vols_df <- readr::read_csv('csv/databrary-volume-survey.csv')
+str(vols_df)
+```
+
+# Visualize
+
+Let's summarize `sharing_level` by `coder` as a warm-up. We save the output so that we can use the data in the next step. There is another way to do this, but this seems to work.
+
+```{r}
+vols_tab <- xtabs(~ coder + sharing_level, data = vols_df)
+vols_tab
+```
+
+Next, let's see who did a lot of coding.
+
+```{r}
+vols_tab_df <- as.data.frame(vols_tab)
+
+vols_tab_summ_df <- vols_tab_df %>%
+  dplyr::group_by(., coder) %>%
+  dplyr::summarize(., tot_vols = sum(Freq))
+
+vols_tab_summ_df %>%
+  dplyr::group_by(., coder) %>%
+  dplyr::arrange(., desc(tot_vols))
+```
+Go, Maggie, Andrea, Kavya, Andrea, Belle, Shahir, Bowen, and Kayla!
+
+## How much data is shared vs. not-shared?
+
+As a first pass, let's look at the number of files stored (`n_files`) by `sharing_level`.
+
+```{r}
+vols_df %>%
+  dplyr::select(., sharing_level, n_files) %>%
+  dplyr::mutate(., n_files = as.numeric(n_files)) %>%
+  dplyr::filter(., sharing_level != '404 Not Found',
+                n_files != is.na(n_files)) %>%
+  dplyr::group_by(., sharing_level) %>%
+  dplyr::summarize(., tot_files = sum(n_files))
+```
+## Which investigators use Databrary a lot?
+
+
