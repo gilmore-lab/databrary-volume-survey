@@ -102,6 +102,107 @@ vols_df %>%
   dplyr::group_by(., sharing_level) %>%
   dplyr::summarize(., tot_files = sum(n_files))
 ```
+
 ## Which investigators use Databrary a lot?
 
+To answer this question, we have to generate a new, augmented data file that includes all of the investigators associated with each volume.
+
+The `databraryapi::list_volume_owners(vol_id)` function provides a data frame with this information.
+
+Rick Gilmore used this commmand to generate a data file of volume owners that is saved in `csv/databrary-shared-volume-owners.csv`. Let's download the Google sheet with the private volume owners' data.
+
+```{r}
+googledrive::drive_download(file = 'databrary-owners', path = 'csv/databrary-private-volume-owners', type = 'csv', overwrite = TRUE)
+```
+
+We should now be able to merge the owner files.
+
+```{r}
+shared_vols_owns <- readr::read_csv("csv/databrary-shared-volume-owners.csv")
+
+shared_vols_owns <- shared_vols_owns %>%
+  dplyr::mutate(., sortname = tolower(sortname)) %>%
+  dplyr::select(., vol_id, person_id, sortname)
+
+private_vols_owns <- readr::read_csv("csv/databrary-private-volume-owners.csv")
+private_vols_owns <- private_vols_owns %>%
+  dplyr::mutate(., sortname = tolower(sortname)) %>%
+  dplyr::select(., vol_id, person_id, sortname)
+
+all_vols_owns <- rbind(shared_vols_owns, private_vols_owns)
+
+all_vols_owns <- all_vols_owns %>%
+  dplyr::arrange(., vol_id, person_id) %>%
+  dplyr::rename(., volume_id = vol_id,
+                investigator_last = sortname)
+```
+
+And then we can merge this data with the volumes data.
+
+```{r}
+merged_volumes_df <- dplyr::left_join(vols_df, all_vols_owns, by = 'volume_id')
+
+str(merged_volumes_df)
+```
+
+So, now we can see which investigators use Databrary to store large numbers of files.
+
+Let's look at the number of volumes/investigator. But first, we exclude those volumes that appear to be deleted.
+
+```{r}
+complete_volumes <- merged_volumes_df %>%
+  dplyr::filter(., sharing_level != '404 Not Found')
+```
+
+So, now we can ask which investigator(s) have the largest number of volumes.
+
+### All volumes
+
+```{r}
+complete_volumes %>%
+  dplyr::select(., volume_id, person_id, investigator_last) %>%
+  dplyr::group_by(., person_id, investigator_last) %>%
+  dplyr::summarise(., n_vols = n()) %>%
+  dplyr::arrange(., desc(n_vols))
+```
+
+### Private volumes
+
+Let's see what's going on by limiting the summary to volumes that are private.
+
+```{r}
+complete_volumes %>%
+  dplyr::select(., volume_id, person_id, investigator_last, sharing_level) %>%
+  dplyr::filter(., sharing_level == 'private') %>%
+  dplyr::group_by(., person_id, investigator_last) %>%
+  dplyr::summarise(., n_vols = n()) %>%
+  dplyr::arrange(., desc(n_vols))
+```
+
+### Overview volumes
+
+```{r}
+complete_volumes %>%
+  dplyr::select(., volume_id, person_id, investigator_last, sharing_level) %>%
+  dplyr::filter(., sharing_level == 'overview') %>%
+  dplyr::group_by(., person_id, investigator_last) %>%
+  dplyr::summarise(., n_vols = n()) %>%
+  dplyr::arrange(., desc(n_vols))
+```
+### Entire volumes
+
+```{r}
+complete_volumes %>%
+  dplyr::select(., volume_id, person_id, investigator_last, sharing_level) %>%
+  dplyr::filter(., sharing_level == 'entire') %>%
+  dplyr::group_by(., person_id, investigator_last) %>%
+  dplyr::summarise(., n_vols = n()) %>%
+  dplyr::arrange(., desc(n_vols))
+```
+
+# Clean up
+
+```{r}
+databraryapi::logout_db()
+```
 
