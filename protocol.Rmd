@@ -1,13 +1,14 @@
 ---
 title: "Protocol"
-author: "Rick Gilmore"
+author: "Rick Gilmore & Andrea Seisler"
 date: "`r Sys.time()`"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
-                      fig.align = "center")
+                      fig.align = "center",
+                      out.width = "800px")
 ```
 
 # Purpose
@@ -34,7 +35,9 @@ In a separate window, open <https://databrary.org/volume/1>.
 
 **Suggestion**: Position the windows side by side.
 
-ADD SCREEN SHOT HERE
+```{r}
+knitr::include_graphics("img/volume-survey-side-by-side.png")
+```
 
 ## Visit a set of volumes and record the data
 

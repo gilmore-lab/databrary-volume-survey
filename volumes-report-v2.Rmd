@@ -1,9 +1,15 @@
 ---
-title: "Databrary Volume Survey"
+title: "Databrary Volume Survey Report"
 subtitle: "Version 2.0"
 author: "Rick Gilmore"
 date: "`r Sys.time()`"
-output: html_document
+output:
+  html_document:
+    self_contained: false
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE}
@@ -61,7 +67,7 @@ googledrive::drive_download(file = 'databrary-volume-survey', path = 'csv/databr
 Next, we can import it into R.
 
 ```{r}
-vols_df <- readr::read_csv('csv/databrary-volume-survey.csv')
+vols_df <- readr::read_csv('csv/databrary-volume-survey.csv', show_col_types = FALSE)
 str(vols_df)
 ```
 
@@ -87,9 +93,10 @@ vols_tab_summ_df %>%
   dplyr::group_by(., coder) %>%
   dplyr::arrange(., desc(tot_vols))
 ```
+
 Go, Maggie, Andrea, Kavya, Andrea, Belle, Shahir, Bowen, and Kayla!
 
-## How much data is shared vs. not-shared?
+## Shared vs. not-shared?
 
 As a first pass, let's look at the number of files stored (`n_files`) by `sharing_level`.
 
@@ -100,10 +107,12 @@ vols_df %>%
   dplyr::filter(., sharing_level != '404 Not Found',
                 n_files != is.na(n_files)) %>%
   dplyr::group_by(., sharing_level) %>%
-  dplyr::summarize(., tot_files = sum(n_files))
+  dplyr::summarize(., tot_files = sum(n_files)) %>%
+  knitr::kable(., format = "html") %>%
+  kableExtra::kable_styling()
 ```
 
-## Which investigators use Databrary a lot?
+## Major users
 
 To answer this question, we have to generate a new, augmented data file that includes all of the investigators associated with each volume.
 
@@ -111,14 +120,14 @@ The `databraryapi::list_volume_owners(vol_id)` function provides a data frame wi
 
 Rick Gilmore used this commmand to generate a data file of volume owners that is saved in `csv/databrary-shared-volume-owners.csv`. Let's download the Google sheet with the private volume owners' data.
 
-```{r}
+```{r, eval=FALSE}
 googledrive::drive_download(file = 'databrary-owners', path = 'csv/databrary-private-volume-owners', type = 'csv', overwrite = TRUE)
 ```
 
 We should now be able to merge the owner files.
 
 ```{r}
-shared_vols_owns <- readr::read_csv("csv/databrary-shared-volume-owners.csv")
+shared_vols_owns <- readr::read_csv("csv/databrary-shared-volume-owners.csv", show_col_types = FALSE)
 
 shared_vols_owns <- shared_vols_owns %>%
   dplyr::mutate(., sortname = tolower(sortname)) %>%
@@ -156,14 +165,32 @@ complete_volumes <- merged_volumes_df %>%
 
 So, now we can ask which investigator(s) have the largest number of volumes.
 
+Add a URL to the investigator's profile page.
+
+```{r}
+complete_volumes <- complete_volumes %>%
+  dplyr::mutate(., person_url = paste0('https://nyu.databrary.org/party/', person_id))
+```
+
 ### All volumes
 
 ```{r}
 complete_volumes %>%
-  dplyr::select(., volume_id, person_id, investigator_last) %>%
-  dplyr::group_by(., person_id, investigator_last) %>%
+  dplyr::group_by(., person_url) %>%
   dplyr::summarise(., n_vols = n()) %>%
-  dplyr::arrange(., desc(n_vols))
+  ggplot(.) +
+  aes(n_vols) +
+  geom_histogram()
+```
+
+```{r}
+complete_volumes %>%
+  dplyr::select(., volume_id, person_url, investigator_last) %>%
+  dplyr::group_by(., person_url, investigator_last) %>%
+  dplyr::summarise(., n_vols = n()) %>%
+  dplyr::arrange(., desc(n_vols)) %>%
+  knitr::kable(., format = "html") %>%
+  kableExtra::kable_material(c("striped", "hover"))
 ```
 
 ### Private volumes
@@ -172,32 +199,69 @@ Let's see what's going on by limiting the summary to volumes that are private.
 
 ```{r}
 complete_volumes %>%
-  dplyr::select(., volume_id, person_id, investigator_last, sharing_level) %>%
   dplyr::filter(., sharing_level == 'private') %>%
-  dplyr::group_by(., person_id, investigator_last) %>%
+  dplyr::group_by(., person_url) %>%
   dplyr::summarise(., n_vols = n()) %>%
-  dplyr::arrange(., desc(n_vols))
+  ggplot(.) +
+  aes(n_vols) +
+  geom_histogram()
+```
+
+```{r}
+complete_volumes %>%
+  dplyr::select(., volume_id, person_url, investigator_last, sharing_level) %>%
+  dplyr::filter(., sharing_level == 'private') %>%
+  dplyr::group_by(., person_url, investigator_last) %>%
+  dplyr::summarise(., n_vols = n()) %>%
+  dplyr::arrange(., desc(n_vols)) %>%
+  knitr::kable(., format = "html") %>%
+  kableExtra::kable_material(c("striped", "hover"))
 ```
 
 ### Overview volumes
 
 ```{r}
 complete_volumes %>%
-  dplyr::select(., volume_id, person_id, investigator_last, sharing_level) %>%
   dplyr::filter(., sharing_level == 'overview') %>%
-  dplyr::group_by(., person_id, investigator_last) %>%
+  dplyr::group_by(., person_url) %>%
   dplyr::summarise(., n_vols = n()) %>%
-  dplyr::arrange(., desc(n_vols))
+  ggplot(.) +
+  aes(n_vols) +
+  geom_histogram()
 ```
+
+```{r}
+complete_volumes %>%
+  dplyr::select(., volume_id, person_url, investigator_last, sharing_level) %>%
+  dplyr::filter(., sharing_level == 'overview') %>%
+  dplyr::group_by(., person_url, investigator_last) %>%
+  dplyr::summarise(., n_vols = n()) %>%
+  dplyr::arrange(., desc(n_vols)) %>%
+  knitr::kable(., format = "html") %>%
+  kableExtra::kable_material(c("striped", "hover"))
+```
+
 ### Entire volumes
 
 ```{r}
 complete_volumes %>%
-  dplyr::select(., volume_id, person_id, investigator_last, sharing_level) %>%
   dplyr::filter(., sharing_level == 'entire') %>%
-  dplyr::group_by(., person_id, investigator_last) %>%
+  dplyr::group_by(., person_url) %>%
   dplyr::summarise(., n_vols = n()) %>%
-  dplyr::arrange(., desc(n_vols))
+  ggplot(.) +
+  aes(n_vols) +
+  geom_histogram()
+```
+
+```{r}
+complete_volumes %>%
+  dplyr::select(., volume_id, person_url, investigator_last, sharing_level) %>%
+  dplyr::filter(., sharing_level == 'entire') %>%
+  dplyr::group_by(., person_url, investigator_last) %>%
+  dplyr::summarise(., n_vols = n()) %>%
+  dplyr::arrange(., desc(n_vols)) %>%
+  knitr::kable(., format = "html") %>%
+  kableExtra::kable_material(c("striped", "hover"))
 ```
 
 # Clean up
